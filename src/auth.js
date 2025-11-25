@@ -1,4 +1,4 @@
-const API = "https://asia-southeast2-renzip-478811.cloudfunctions.net/dashboard";
+const API = "https://asia-southeast2-renzip-478811.cloudfunctions.net/dashboard/api/v1";
 
 // Token management
 export function getToken() {

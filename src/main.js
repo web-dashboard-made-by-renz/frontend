@@ -1,7 +1,7 @@
 import Chart from "chart.js/auto";
 import { requireAuth, getToken, logout } from "./auth.js";
 
-const API = "https://asia-southeast2-renzip-478811.cloudfunctions.net/dashboard";
+const API = "https://asia-southeast2-renzip-478811.cloudfunctions.net/dashboard/api/v1";
 
 // Helper function to add Authorization header
 function getAuthHeaders() {
