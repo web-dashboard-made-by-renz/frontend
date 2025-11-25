@@ -1,4 +1,4 @@
-const API = "http://localhost:8080/api/v1";
+const API = "https://asia-southeast2-renzip-478811.cloudfunctions.net/dashboard";
 
 // Token management
 export function getToken() {
