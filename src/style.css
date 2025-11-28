@@ -295,3 +295,69 @@ th {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 900px) {
+  .layout {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+
+  .menu {
+    flex: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .menu button {
+    flex: 1 1 120px;
+    text-align: center;
+  }
+
+  .content {
+    padding: 14px 12px 18px;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    min-width: 240px;
+  }
+
+  table {
+    min-width: 520px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .menu button {
+    flex: 1 1 100%;
+  }
+
+  .card {
+    padding: 10px;
+  }
+
+  .toggle-btn {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  th,
+  td {
+    padding: 3px 4px;
+  }
+}
