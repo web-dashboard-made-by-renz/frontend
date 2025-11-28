@@ -33,19 +33,32 @@ const dataTypeSelect = document.getElementById("dataTypeSelect");
 let currentAction = null; // "import" | "export" | "manual"
 
 function formatCurrency(value) {
-  if (value == null) return "";
-  return Number(value).toLocaleString("id-ID");
+  const num = parseNumber(value);
+  if (num == null) return "";
+  return num.toLocaleString("id-ID");
 }
 
 function formatFloat(value) {
-  if (value == null || isNaN(value)) return "";
-  return Number(value).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const num = parseNumber(value);
+  if (num == null) return "";
+  return num.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function formatDate(value) {
   if (!value) return "";
   const d = new Date(value);
   return d.toLocaleDateString("id-ID");
+}
+
+function parseNumber(value) {
+  if (value == null || value === "") return null;
+  if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const cleaned = value.replace(/[^0-9,.-]/g, "").replace(/\./g, "").replace(/,/g, ".");
+    const num = Number(cleaned);
+    return Number.isFinite(num) ? num : null;
+  }
+  return null;
 }
 
 function updateToggleButton(btnId, isShowingAll, totalRows) {
