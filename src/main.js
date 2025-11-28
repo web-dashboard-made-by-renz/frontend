@@ -488,31 +488,31 @@ function buildChartsFromSellout(sellouts) {
       labels,
       datasets: [
         {
-          label: "SO Daily MTD",
+          label: "Total Sellout",
           data: soDaily,
           borderColor: "#2563eb",
           tension: 0.3,
         },
         {
-          label: "SO JT",
+          label: "Sellout TT",
           data: soJT,
           borderColor: "#fb923c",
           tension: 0.3,
         },
         {
-          label: "SJ",
+          label: "Sellout RM",
           data: sj,
           borderColor: "#10b981",
           tension: 0.3,
         },
         {
-          label: "Tagihan",
+          label: "Tagihan (80%)",
           data: tagihan,
           borderColor: "#8b5cf6",
           tension: 0.3,
         },
         {
-          label: "Target",
+          label: "Target Sellout (110%)",
           data: target,
           borderColor: "#ef4444",
           tension: 0.3,
@@ -535,31 +535,31 @@ function buildChartsFromSellout(sellouts) {
       labels,
       datasets: [
         {
-          label: "SO Last + SO JT",
+          label: "Total Sellout Acc",
           data: lineCumSo,
           borderColor: "#38bdf8",
           tension: 0.3,
         },
         {
-          label: "Faktur now + Faktur Last",
+          label: "Sellout TT Acc",
           data: lineFakturNow,
           borderColor: "#22c55e",
           tension: 0.3,
         },
         {
-          label: "Retur",
+          label: "Retur (5% RM)",
           data: lineRetur,
           borderColor: "#f97316",
           tension: 0.3,
         },
         {
-          label: "PSO",
+          label: "PSO (3% Total)",
           data: linePso,
           borderColor: "#eab308",
           tension: 0.3,
         },
         {
-          label: "Faktur Langsung",
+          label: "Faktur Langsung (10% Total)",
           data: lineLangsung,
           borderColor: "#ec4899",
           tension: 0.3,
