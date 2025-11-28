@@ -46,8 +46,23 @@ function formatFloat(value) {
 
 function formatDate(value) {
   if (!value) return "";
-  const d = new Date(value);
-  return d.toLocaleDateString("id-ID");
+  const direct = new Date(value);
+  if (!Number.isNaN(direct.getTime())) return direct.toLocaleDateString("id-ID");
+
+  // fallback parse format "23-Jan-22" atau "23-Jan-2022"
+  const m = String(value).match(/^(\d{1,2})-([A-Za-z]{3})-(\d{2,4})$/);
+  if (m) {
+    const day = parseInt(m[1], 10);
+    const monthStr = m[2].toLowerCase();
+    const year = parseInt(m[3].length === 2 ? `20${m[3]}` : m[3], 10);
+    const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+    const monthIdx = monthNames.indexOf(monthStr);
+    if (monthIdx >= 0) {
+      const d = new Date(Date.UTC(year, monthIdx, day));
+      if (!Number.isNaN(d.getTime())) return d.toLocaleDateString("id-ID");
+    }
+  }
+  return value; // fallback tampilkan apa adanya
 }
 
 function parseNumber(value) {
@@ -157,6 +172,14 @@ function renderSelloutTable() {
   tbody.innerHTML = "";
 
   rows.forEach((row) => {
+    const selloutTT = formatCurrency(row.sellout_tt);
+    const selloutRM = formatCurrency(row.sellout_rm);
+    const primafix = formatCurrency(row.primafix);
+    const targetSellout = formatCurrency(row.target_sellout);
+    const totalSellout = formatCurrency(row.total_sellout);
+    const masaKerja = formatFloat(row.masa_kerja);
+    const tglGabung = formatDate(row.tanggal_bergabung);
+
     tbody.innerHTML += `
       <tr>
         <td>${row.tahun ?? ""}</td>
@@ -168,15 +191,15 @@ function renderSelloutTable() {
         <td>${row.mos_ss || ""}</td>
         <td>${row.nama_colorist || ""}</td>
         <td>${row.no_reg || ""}</td>
-        <td>${formatDate(row.tanggal_bergabung)}</td>
-        <td>${formatFloat(row.masa_kerja)}</td>
-        <td>${row.sellout_tt != null ? row.sellout_tt.toLocaleString("id-ID") : ""}</td>
-        <td>${row.sellout_rm != null ? row.sellout_rm.toLocaleString("id-ID") : ""}</td>
-        <td>${formatCurrency(row.primafix)}</td>
-        <td>${formatCurrency(row.target_sellout)}</td>
+        <td>${tglGabung}</td>
+        <td>${masaKerja}</td>
+        <td>${selloutTT}</td>
+        <td>${selloutRM}</td>
+        <td>${primafix}</td>
+        <td>${targetSellout}</td>
         <td>${row.chl || ""}</td>
         <td>${row.wilayah || ""}</td>
-        <td>${row.total_sellout != null ? row.total_sellout.toLocaleString("id-ID") : ""}</td>
+        <td>${totalSellout}</td>
       </tr>
     `;
   });
