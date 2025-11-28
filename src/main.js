@@ -2,6 +2,7 @@ import Chart from "chart.js/auto";
 import { requireAuth, getToken, logout } from "./auth.js";
 
 const API = "https://asia-southeast2-renzip-478811.cloudfunctions.net/dashboard/api/v1";
+const DEFAULT_LIMIT = 10;
 
 // Helper function to add Authorization header
 function getAuthHeaders() {
@@ -15,6 +16,12 @@ function getAuthHeaders() {
 let dailyChart = null;
 let accChart = null;
 let top10Chart = null;
+let trainingData = [];
+let colorisData = [];
+let selloutData = [];
+let showAllTraining = false;
+let showAllColoris = false;
+let showAllSellout = false;
 
 const overlay = document.getElementById("overlay");
 const modalTitle = document.getElementById("modalTitle");
@@ -24,6 +31,145 @@ const modalCancel = document.getElementById("modalCancel");
 const dataTypeSelect = document.getElementById("dataTypeSelect");
 
 let currentAction = null; // "import" | "export" | "manual"
+
+function formatCurrency(value) {
+  if (value == null) return "";
+  return Number(value).toLocaleString("id-ID");
+}
+
+function formatFloat(value) {
+  if (value == null || isNaN(value)) return "";
+  return Number(value).toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatDate(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  return d.toLocaleDateString("id-ID");
+}
+
+function updateToggleButton(btnId, isShowingAll, totalRows) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  if (totalRows <= DEFAULT_LIMIT) {
+    btn.style.display = "none";
+    return;
+  }
+  btn.style.display = "inline-flex";
+  btn.textContent = isShowingAll ? "Tampilkan Top 10" : "Tampilkan Semua";
+}
+
+function renderTrainingTable() {
+  const table = document.getElementById("trainingTable");
+  const tbody = table ? table.querySelector("tbody") : null;
+
+  if (!tbody) {
+    console.error("tbody trainingTable tidak ditemukan");
+    return;
+  }
+
+  if (!trainingData.length) {
+    tbody.innerHTML = `<tr><td colspan="5">Tidak ada data Training</td></tr>`;
+    updateToggleButton("trainingToggle", showAllTraining, trainingData.length);
+    return;
+  }
+
+  const rows = showAllTraining ? trainingData : trainingData.slice(0, DEFAULT_LIMIT);
+  tbody.innerHTML = "";
+
+  rows.forEach((row) => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${row.timestamp ? new Date(row.timestamp).toLocaleDateString() : ""}</td>
+        <td>${row.cabang_area || ""}</td>
+        <td>${row.nama_lengkap_sesuai_ktp || ""}</td>
+        <td>${row.materi_pelatihan || ""}</td>
+        <td>${row.total_nilai ?? ""}</td>
+      </tr>
+    `;
+  });
+
+  updateToggleButton("trainingToggle", showAllTraining, trainingData.length);
+}
+
+function renderColorisTable() {
+  const table = document.getElementById("colorisTable");
+  const tbody = table ? table.querySelector("tbody") : null;
+
+  if (!tbody) {
+    console.error("tbody colorisTable tidak ditemukan");
+    return;
+  }
+
+  if (!colorisData.length) {
+    tbody.innerHTML = `<tr><td colspan="5">Tidak ada data Coloris</td></tr>`;
+    updateToggleButton("colorisToggle", showAllColoris, colorisData.length);
+    return;
+  }
+
+  const rows = showAllColoris ? colorisData : colorisData.slice(0, DEFAULT_LIMIT);
+  tbody.innerHTML = "";
+
+  rows.forEach((row) => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${row.timestamp ? new Date(row.timestamp).toLocaleDateString() : ""}</td>
+        <td>${row.nama_lengkap_sesuai_ktp || ""}</td>
+        <td>${row.region || ""}</td>
+        <td>${row.materi || ""}</td>
+        <td>${row.nilai_akhir ?? ""}</td>
+      </tr>
+    `;
+  });
+
+  updateToggleButton("colorisToggle", showAllColoris, colorisData.length);
+}
+
+function renderSelloutTable() {
+  const table = document.getElementById("selloutTable");
+  const tbody = table ? table.querySelector("tbody") : null;
+
+  if (!tbody) {
+    console.error("tbody selloutTable tidak ditemukan");
+    return;
+  }
+
+  if (!selloutData.length) {
+    tbody.innerHTML = `<tr><td colspan="18">Tidak ada data Sellout</td></tr>`;
+    updateToggleButton("selloutToggle", showAllSellout, selloutData.length);
+    return;
+  }
+
+  const rows = showAllSellout ? selloutData : selloutData.slice(0, DEFAULT_LIMIT);
+  tbody.innerHTML = "";
+
+  rows.forEach((row) => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${row.tahun ?? ""}</td>
+        <td>${row.bulan ?? ""}</td>
+        <td>${row.reg || ""}</td>
+        <td>${row.cabang || ""}</td>
+        <td>${row.outlet || ""}</td>
+        <td>${row.area_cover || ""}</td>
+        <td>${row.mos_ss || ""}</td>
+        <td>${row.nama_colorist || ""}</td>
+        <td>${row.no_reg || ""}</td>
+        <td>${formatDate(row.tanggal_bergabung)}</td>
+        <td>${formatFloat(row.masa_kerja)}</td>
+        <td>${row.sellout_tt != null ? row.sellout_tt.toLocaleString("id-ID") : ""}</td>
+        <td>${row.sellout_rm != null ? row.sellout_rm.toLocaleString("id-ID") : ""}</td>
+        <td>${formatCurrency(row.primafix)}</td>
+        <td>${formatCurrency(row.target_sellout)}</td>
+        <td>${row.chl || ""}</td>
+        <td>${row.wilayah || ""}</td>
+        <td>${row.total_sellout != null ? row.total_sellout.toLocaleString("id-ID") : ""}</td>
+      </tr>
+    `;
+  });
+
+  updateToggleButton("selloutToggle", showAllSellout, selloutData.length);
+}
 
 // ------------------------- TABLE LOADERS -------------------------
 async function loadTraining() {
@@ -67,28 +213,22 @@ async function loadTraining() {
 
     if (response.data.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5">Tidak ada data Training</td></tr>`;
+      trainingData = [];
+      updateToggleButton("trainingToggle", showAllTraining, trainingData.length);
       return;
     }
 
-    tbody.innerHTML = "";
-
-    response.data.forEach((row) => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${row.timestamp ? new Date(row.timestamp).toLocaleDateString() : ""}</td>
-          <td>${row.cabang_area || ""}</td>
-          <td>${row.nama_lengkap_sesuai_ktp || ""}</td>
-          <td>${row.materi_pelatihan || ""}</td>
-          <td>${row.total_nilai ?? ""}</td>
-        </tr>
-      `;
-    });
+    trainingData = response.data;
+    showAllTraining = false;
+    renderTrainingTable();
   } catch (err) {
     console.error("Error load training:", err);
     const table = document.getElementById("trainingTable");
     const tbody = table ? table.querySelector("tbody") : null;
     if (tbody) {
       tbody.innerHTML = `<tr><td colspan="5">Error: ${err.message}</td></tr>`;
+      trainingData = [];
+      updateToggleButton("trainingToggle", showAllTraining, trainingData.length);
     }
   }
 }
@@ -137,28 +277,22 @@ async function loadColoris() {
 
     if (response.data.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5">Tidak ada data Coloris</td></tr>`;
+      colorisData = [];
+      updateToggleButton("colorisToggle", showAllColoris, colorisData.length);
       return;
     }
 
-    tbody.innerHTML = "";
-
-    response.data.forEach((row) => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${row.timestamp ? new Date(row.timestamp).toLocaleDateString() : ""}</td>
-          <td>${row.nama_lengkap_sesuai_ktp || ""}</td>
-          <td>${row.region || ""}</td>
-          <td>${row.materi || ""}</td>
-          <td>${row.nilai_akhir ?? ""}</td>
-        </tr>
-      `;
-    });
+    colorisData = response.data;
+    showAllColoris = false;
+    renderColorisTable();
   } catch (err) {
     console.error("Error load coloris:", err);
     const table = document.getElementById("colorisTable");
     const tbody = table ? table.querySelector("tbody") : null;
     if (tbody) {
       tbody.innerHTML = `<tr><td colspan="5">Error: ${err.message}</td></tr>`;
+      colorisData = [];
+      updateToggleButton("colorisToggle", showAllColoris, colorisData.length);
     }
   }
 }
@@ -176,7 +310,7 @@ async function loadSelloutAndCharts() {
       const table = document.getElementById("selloutTable");
       const tbody = table ? table.querySelector("tbody") : null;
       if (tbody) {
-        tbody.innerHTML = `<tr><td colspan="9">Error: ${res.status} ${res.statusText}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="18">Error: ${res.status} ${res.statusText}</td></tr>`;
       }
       return;
     }
@@ -200,40 +334,29 @@ async function loadSelloutAndCharts() {
 
     if (!response.data || !Array.isArray(response.data)) {
       console.error("Response sellout tidak memiliki array data:", response);
-      tbody.innerHTML = `<tr><td colspan="9">Format response tidak sesuai</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="18">Format response tidak sesuai</td></tr>`;
       return;
     }
 
     if (response.data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9">Tidak ada data Sellout</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="18">Tidak ada data Sellout</td></tr>`;
+      selloutData = [];
+      updateToggleButton("selloutToggle", showAllSellout, selloutData.length);
       return;
     }
 
-    tbody.innerHTML = "";
-
-    response.data.forEach((row) => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${row.tahun ?? ""}</td>
-          <td>${row.bulan ?? ""}</td>
-          <td>${row.reg || ""}</td>
-          <td>${row.cabang || ""}</td>
-          <td>${row.outlet || ""}</td>
-          <td>${row.nama_colorist || ""}</td>
-          <td>${row.sellout_tt != null ? row.sellout_tt.toLocaleString("id-ID") : ""}</td>
-          <td>${row.sellout_rm != null ? row.sellout_rm.toLocaleString("id-ID") : ""}</td>
-          <td>${row.total_sellout != null ? row.total_sellout.toLocaleString("id-ID") : ""}</td>
-        </tr>
-      `;
-    });
-
-    buildChartsFromSellout(response.data);
+    selloutData = response.data;
+    showAllSellout = false;
+    renderSelloutTable();
+    buildChartsFromSellout(selloutData);
   } catch (err) {
     console.error("Error load sellout:", err);
     const table = document.getElementById("selloutTable");
     const tbody = table ? table.querySelector("tbody") : null;
     if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="9">Error: ${err.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="18">Error: ${err.message}</td></tr>`;
+      selloutData = [];
+      updateToggleButton("selloutToggle", showAllSellout, selloutData.length);
     }
   }
 }
@@ -789,6 +912,25 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
   if (confirm("Apakah Anda yakin ingin logout?")) {
     logout();
   }
+});
+
+// Toggle top 10 / semua data untuk tabel
+document.getElementById("trainingToggle")?.addEventListener("click", () => {
+  if (!trainingData.length) return;
+  showAllTraining = !showAllTraining;
+  renderTrainingTable();
+});
+
+document.getElementById("colorisToggle")?.addEventListener("click", () => {
+  if (!colorisData.length) return;
+  showAllColoris = !showAllColoris;
+  renderColorisTable();
+});
+
+document.getElementById("selloutToggle")?.addEventListener("click", () => {
+  if (!selloutData.length) return;
+  showAllSellout = !showAllSellout;
+  renderSelloutTable();
 });
 
 // ------------------------- INIT -------------------------

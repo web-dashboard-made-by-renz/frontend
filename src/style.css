@@ -143,9 +143,34 @@ h1 {
   overflow-x: auto;
 }
 
-.card h3 {
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin: 0 0 6px;
+}
+
+.card h3 {
+  margin: 0;
   font-size: 14px;
+}
+
+.toggle-btn {
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  background: var(--accent-soft);
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 11px;
+  white-space: nowrap;
+  transition: opacity 0.15s ease, transform 0.05s;
+}
+
+.toggle-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
 }
 
 table {
