@@ -169,9 +169,14 @@ function renderSelloutTable() {
   }
 
   const rows = showAllSellout ? selloutData : selloutData.slice(0, DEFAULT_LIMIT);
+  const sortedRows = [...rows].sort((a, b) => {
+    const ta = parseNumber(a.total_sellout) || 0;
+    const tb = parseNumber(b.total_sellout) || 0;
+    return tb - ta;
+  });
   tbody.innerHTML = "";
 
-  rows.forEach((row) => {
+  sortedRows.forEach((row) => {
     const selloutTT = formatCurrency(row.sellout_tt);
     const selloutRM = formatCurrency(row.sellout_rm);
     const primafix = formatCurrency(row.primafix);
