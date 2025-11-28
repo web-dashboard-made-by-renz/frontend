@@ -799,8 +799,34 @@ modalAction.addEventListener("click", async () => {
 
   if (currentAction === "export") {
     const token = getToken();
-    window.open(`${API}/${type}/export?token=${token}`, "_blank");
-    overlay.classList.add("hidden");
+    try {
+      const res = await fetch(`${API}/${type}/export`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        alert(`Export gagal: ${res.status} ${res.statusText} - ${errText}`);
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${type}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      overlay.classList.add("hidden");
+    } catch (err) {
+      alert(`Export gagal: ${err.message}`);
+      console.error("Export error:", err);
+    }
     return;
   }
 
